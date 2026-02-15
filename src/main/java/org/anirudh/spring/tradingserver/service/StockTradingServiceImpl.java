@@ -9,6 +9,10 @@ import org.anirudh.spring.tradingserver.repository.StockRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.grpc.server.service.GrpcService;
 
+import java.time.Instant;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 @GrpcService
 public class StockTradingServiceImpl extends StockTradingServiceGrpc.StockTradingServiceImplBase {
 
@@ -32,5 +36,29 @@ public class StockTradingServiceImpl extends StockTradingServiceGrpc.StockTradin
 
         responseObserver.onNext(stockResponse);
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void subscribeStockPrice(StockRequest request, StreamObserver<StockResponse> responseObserver) {
+
+        String symbol = request.getStockSymbol();
+
+        try{
+            for(int i = 0; i <=10; i++){
+                StockResponse response = StockResponse.newBuilder()
+                        .setStockSymbol(symbol)
+                        .setPrice(new Random().nextDouble(200))
+                        .setTimestamp(Instant.now().toString())
+                        .build();
+
+                responseObserver.onNext(response);
+                TimeUnit.SECONDS.sleep(1);
+            }
+        } catch (Exception e) {
+            responseObserver.onError(e);
+        }
+
+        responseObserver.onCompleted();
+
     }
 }
